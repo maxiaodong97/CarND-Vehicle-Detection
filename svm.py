@@ -6,16 +6,17 @@ import pickle
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
 from helper import single_img_features
 
-cars = glob.glob('data/vehicles/*/*')
-notcars = glob.glob('data/non-vehicles/*/*')
+cars = glob.glob('data/vehicles/*/*.png')
+notcars = glob.glob('data/non-vehicles/*/*.png')
 
 color_space = 'YCrCb'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
-orient = 11  # HOG orientations
+orient = 13  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
 cell_per_block = 2  # HOG cells per block
-hog_channel = "ALL"  # Can be 0, 1, 2, or "ALL"
+hog_channel = 'ALL'  # Can be 0, 1, 2, or "ALL"
 spatial_size = (32, 32)  # Spatial binning dimensions
 hist_bins = 64    # Number of histogram bins
 spatial_feat = True  # Spatial features on or off
@@ -55,9 +56,8 @@ X_scaler = StandardScaler().fit(X)
 scaled_X = X_scaler.transform(X)
 y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
 
-rand_state = np.random.randint(0, 100)
 X_train, X_test, y_train, y_test = train_test_split(
-    scaled_X, y, test_size=0.2, random_state=rand_state)
+    scaled_X, y, test_size=0.1, random_state=1)
 
 print('Using:', orient, 'orientations', pix_per_cell,
       'pixels per cell and', cell_per_block, 'cells per block')
@@ -74,7 +74,9 @@ print('My SVC predicts: ', svc.predict(X_test[0:n_predict]))
 print('For these', n_predict, 'labels: ', y_test[0:n_predict])
 t2 = time.time()
 print(round(t2 - t, 5), 'Seconds to predict', n_predict, 'labels with SVC')
-
+CM = confusion_matrix(y_test, svc.predict(X_test))
+print('False positive {:.2%}'.format(CM[0][1] / len(y_test)))
+print('False negative {:.2%}'.format(CM[1][0] / len(y_test)))
 
 with open('svm.pkl', 'wb') as fid:
     pickle.dump(color_space, fid)
