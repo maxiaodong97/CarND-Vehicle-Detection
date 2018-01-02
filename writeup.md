@@ -11,10 +11,10 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 [image1]: ./output_images/car_not_car.png
-[image2]: ./output_images/HOG_example.jpg
-[image3]: ./output_images/sliding_windows.jpg
-[image4]: ./output_images/sliding_window.jpg
-[image5]: ./output_images/bboxes_and_heat.png
+[image2]: ./output_images/HOG_example.png
+[image3]: ./output_images/sliding_windows.png
+[image4]: ./output_images/slide_window.png
+[image5]: ./output_images/bbox_and_heat.png
 [image6]: ./output_images/labels_map.png
 [image7]: ./output_images/output_bboxes.png
 [video1]: ./project_video_output.mp4
@@ -45,6 +45,7 @@ I found for a 64x64 image, prediction is around 0.0002 seconds (0.002/10), but e
 
 I use following as a baseline from course material.
 
+```python
 color_space = 'YCrCb'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 orient = 9  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
@@ -55,6 +56,7 @@ hist_bins = 32    # Number of histogram bins
 spatial_feat = True  # Spatial features on or off
 hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
+```
 
 This gives pretty good accuracy around 98.5%, but it also takes long time to extract features, around 0.015 seconds per sample. Since later I will use aboud 250 sliding windows (sub images) to search for vehicle. These accuracy will generate %1.5 * 250 ~ 4 "bad" windows,  either false positives or false negatives. With thresholding, 4 false detections is tolerable. I tried to maintain this accuracy but try to reduce the time, since 0.015 * 250 will need 3.75 seconds to process each frame, kind of too long.
 
@@ -76,6 +78,7 @@ This gives test accuracy 0.987 with 4896 features @ 0.0055 seconds to extract fe
 
 In summay, here is the final parameters that I picked:
 
+```python
 color_space = 'YCrCb'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 orient = 16  # HOG orientations
 pix_per_cell = 16  # HOG pixels per cell
@@ -87,20 +90,19 @@ spatial_feat = True  # Spatial features on or off
 hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
 
-
 This gives: 
 
 Test Accuracy of SVC =  0.987
 False positive 0.28%
 False negative 1.01% 
-
+```
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM using sklearn.svm LinearSVC. Refer line 50-79 in `svm.py`. I hog feature in all 3 YCrCb channel as features to train with car and noncar sampeles. First I extract features from img, then normalize image with StandardScaler to scale to zero mean and unit variance before training the classifier, then I use 90/10 to split samples to training set and test set. Finally I train the model and save the training result to `svm.pkl` file.
+I trained a linear SVM using sklearn.svm LinearSVC. Refer line 50-79 in `svm.py`. I use hog feature in all 3 YCrCb channel as features to train with car and noncar sampeles. First I extract features from img, then normalize image with StandardScaler to scale to zero mean and unit variance before training the classifier, then I use 90/10 to split samples to training set and test set. Finally I train the model and save the training result to `svm.pkl` file.
 
 
-In addition, I also train the sample with CNN, refer `cnn.py`, I am able to archive 0.989 test accuracy and it is 4 times faster to processing a frame comparing with SVM HOG, if I want the same level of classification test accuracy, but SVM HOG looks has more parameters to tune and more flexible.
+In addition, I also train the sample with CNN, refer `cnn.py`, I am able to archive 0.989 test accuracy and it is 4 times faster to processing a frame comparing with SVM HOG (if I want the same level of classification test accuracy), but SVM HOG looks has more parameters to tune and more flexible.
 
 
 ### Sliding Window Search
@@ -114,7 +116,7 @@ To capture the small car (far) and larger cars(near), I use 5 scale starting fro
 ```python
 for scale in [1.0, 1.2, 1.5, 1.7, 2.0]:
         ystart = 400
-        ystop = 540 + int(scale * 60)
+        ystop = 500 + int(scale * 60)
         if fast_find and method == 'svm':
             bbox_list = find_cars(img, 250, ystart, ystop, scale)
         else:
@@ -139,13 +141,9 @@ Ultimately I searched on 5 scales using YCrCb 3-channel HOG features plus spatia
 
 ### Video Implementation
 
-#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
 Here's a [link to my video result](./project_video_output.mp4)
 
-
-#### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
-
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
+I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  I then detect vehicle using accumulated heatmap from previous 10 frames. Please refer line 277 ~ 327 of file `pipeline.py`.
 
 Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
 
