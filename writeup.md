@@ -45,6 +45,7 @@ I found for a 64x64 image, prediction is around 0.0002 seconds (0.002/10), but e
 
 I use following as a baseline from course material.
 
+```python
 color_space = 'YCrCb'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 orient = 9  # HOG orientations
 pix_per_cell = 8  # HOG pixels per cell
@@ -55,6 +56,7 @@ hist_bins = 32    # Number of histogram bins
 spatial_feat = True  # Spatial features on or off
 hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
+```
 
 This gives pretty good accuracy around 98.5%, but it also takes long time to extract features, around 0.015 seconds per sample. Since later I will use aboud 250 sliding windows (sub images) to search for vehicle. These accuracy will generate %1.5 * 250 ~ 4 "bad" windows,  either false positives or false negatives. With thresholding, 4 false detections is tolerable. I tried to maintain this accuracy but try to reduce the time, since 0.015 * 250 will need 3.75 seconds to process each frame, kind of too long.
 
@@ -76,6 +78,7 @@ This gives test accuracy 0.987 with 4896 features @ 0.0055 seconds to extract fe
 
 In summay, here is the final parameters that I picked:
 
+```python
 color_space = 'YCrCb'  # Can be RGB, HSV, LUV, HLS, YUV, YCrCb
 orient = 16  # HOG orientations
 pix_per_cell = 16  # HOG pixels per cell
@@ -87,13 +90,12 @@ spatial_feat = True  # Spatial features on or off
 hist_feat = True  # Histogram features on or off
 hog_feat = True  # HOG features on or off
 
-
 This gives: 
 
 Test Accuracy of SVC =  0.987
 False positive 0.28%
 False negative 1.01% 
-
+```python
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
