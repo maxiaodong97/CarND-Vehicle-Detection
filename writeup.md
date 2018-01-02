@@ -95,14 +95,14 @@ This gives:
 Test Accuracy of SVC =  0.987
 False positive 0.28%
 False negative 1.01% 
-```python
+```
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM using sklearn.svm LinearSVC. Refer line 50-79 in `svm.py`. I hog feature in all 3 YCrCb channel as features to train with car and noncar sampeles. First I extract features from img, then normalize image with StandardScaler to scale to zero mean and unit variance before training the classifier, then I use 90/10 to split samples to training set and test set. Finally I train the model and save the training result to `svm.pkl` file.
+I trained a linear SVM using sklearn.svm LinearSVC. Refer line 50-79 in `svm.py`. I use hog feature in all 3 YCrCb channel as features to train with car and noncar sampeles. First I extract features from img, then normalize image with StandardScaler to scale to zero mean and unit variance before training the classifier, then I use 90/10 to split samples to training set and test set. Finally I train the model and save the training result to `svm.pkl` file.
 
 
-In addition, I also train the sample with CNN, refer `cnn.py`, I am able to archive 0.989 test accuracy and it is 4 times faster to processing a frame comparing with SVM HOG, if I want the same level of classification test accuracy, but SVM HOG looks has more parameters to tune and more flexible.
+In addition, I also train the sample with CNN, refer `cnn.py`, I am able to archive 0.989 test accuracy and it is 4 times faster to processing a frame comparing with SVM HOG (if I want the same level of classification test accuracy), but SVM HOG looks has more parameters to tune and more flexible.
 
 
 ### Sliding Window Search
@@ -116,7 +116,7 @@ To capture the small car (far) and larger cars(near), I use 5 scale starting fro
 ```python
 for scale in [1.0, 1.2, 1.5, 1.7, 2.0]:
         ystart = 400
-        ystop = 540 + int(scale * 60)
+        ystop = 500 + int(scale * 60)
         if fast_find and method == 'svm':
             bbox_list = find_cars(img, 250, ystart, ystop, scale)
         else:
